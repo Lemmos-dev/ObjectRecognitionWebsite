@@ -3,9 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 export default function UploadPage() {
    const [image, setImage] = useState(null);
    const [tags, setTags] = useState([]);
+   const [tagMode, setTagMode] = useState("include");  // Add a state for toggling tags
    const canvasRef = useRef(null);
 
-   // Handle image selection and load it onto the canvas
    const handleImageChange = (e) => {
        const file = e.target.files[0];
        setImage(file);
@@ -17,26 +17,18 @@ export default function UploadPage() {
            const ctx = canvas.getContext('2d');
            const img = new Image();
 
-           // Convert image file to data URL
            const reader = new FileReader();
            reader.onload = (event) => {
                img.src = event.target.result;
            };
            reader.readAsDataURL(image);
 
-           // Draw image when it has loaded
            img.onload = () => {
-               // Clear canvas before drawing
                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-               // Adjust canvas size to match the image's dimensions
                canvas.width = img.width;
                canvas.height = img.height;
-
-               // Draw the image onto the canvas
                ctx.drawImage(img, 0, 0);
 
-               // Draw existing tags if any
                tags.forEach(({ x, y, label }) => {
                    drawTag(ctx, x, y, label);
                });
@@ -50,7 +42,7 @@ export default function UploadPage() {
        const x = e.clientX - rect.left;
        const y = e.clientY - rect.top;
 
-       const newTag = { x, y, label: 'include' };
+       const newTag = { x, y, label: tagMode };
        setTags([...tags, newTag]);
    };
 
@@ -80,6 +72,10 @@ export default function UploadPage() {
        ctx.fill();
    };
 
+   const toggleTagMode = () => {
+       setTagMode(tagMode === "include" ? "exclude" : "include");
+   };
+
    return (
        <div>
            <h1>Upload and Tag Image</h1>
@@ -93,7 +89,11 @@ export default function UploadPage() {
                    ></canvas>
                )}
            </div>
+           <button onClick={toggleTagMode}>
+               Toggle Tag Mode (Current: {tagMode})
+           </button>
            <button onClick={handleUpload}>Upload Image and Tags</button>
        </div>
    );
 }
+
