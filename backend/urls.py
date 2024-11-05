@@ -17,6 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from recog import views
+from recog.views import TaggedImageUploadView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/hello/', views.hello_world, name='hello_world'),
+    path('api/upload/', TaggedImageUploadView.as_view(), name='image_upload'),
 ]
