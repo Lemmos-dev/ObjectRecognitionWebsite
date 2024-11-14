@@ -30,23 +30,8 @@ class TaggedImageUploadView(APIView):
         # First, save the data in the local database
         serializer = TaggedImageSerializer(data=request.data)
         if serializer.is_valid():
-            tagged_image = serializer.save()
-
-            # Prepare data to send to SAM2
-            sam2_url = 'http://sam2-server/api/upload/'  # Replace with actual SAM2 API URL
-            files = {'image': tagged_image.image.file}
-            data = {'tags': tagged_image.tags}
-
-            try:
-                # Forward the image and tags to SAM2
-                response = requests.post(sam2_url, files=files, data={'tags': tagged_image.tags})
-                response.raise_for_status()
-
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            except requests.exceptions.RequestException as e:
-                # Handle request errors (e.g., network or server issues)
-                return Response({"error": "Failed to forward to SAM2", "details": str(e)},
-                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -76,7 +76,7 @@ export default function UploadPage() {
         <div>
             <h1>Upload and Tag Image for SAM2 Segmentation</h1>
             <input type="file" onChange={handleImageChange} accept="image/*" />
-            <button onClick={toggleLabel}>Toggle to {currentLabel === "include" ? "Exclude" : "Include"}</button>
+            <button onClick={toggleLabel}>Toggle Tag Mode (Current: {currentLabel})</button>
             <div style={{ position: 'relative', display: 'inline-block' }}>
                 <canvas
                     ref={canvasRef}
