@@ -2,8 +2,9 @@
 from django.db import models
 
 class TaggedImage(models.Model):
-    image = models.ImageField(upload_to='images/')
-    tags = models.JSONField()  # Store coordinates and tags as JSON
+    image = models.ImageField(upload_to='tagged_images/')
+    tags = models.JSONField()  # Stores the coordinates and labels for tags
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Image {self.id} with tags"
+        return f"TaggedImage {self.id}"

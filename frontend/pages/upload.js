@@ -48,29 +48,18 @@ export default function UploadPage() {
     };
 
     const handleUpload = async () => {
-        const formData = new FormData();
-        formData.append('image', image);
+    const formData = new FormData();
+    formData.append('image', image);
 
-        const tagsData = tags.map(tag => ({
-            x: tag.x,
-            y: tag.y,
-            label: tag.label === "include" ? 1 : 0
-        }));
-        formData.append('tags', JSON.stringify(tagsData));
+    const tagsData = tags.map(tag => ({
+        x: tag.x,
+        y: tag.y,
+        label: tag.label === "include" ? 1 : 0
+    }));
+    formData.append('tags', JSON.stringify(tagsData));
 
-        fetch("http://localhost:8000/upload_image/", {
-            method: "POST",
-            body: formData,
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Image and tags saved:", data);
-            })
-            .catch(error => {
-                console.error("Error uploading image and tags:", error);
-            });
-
-        const response = await fetch('http://localhost:8000/api/segment/', {
+    try {
+        const response = await fetch('http://localhost:8000/api/upload/', {
             method: 'POST',
             body: formData,
         });
@@ -80,9 +69,14 @@ export default function UploadPage() {
             const imageUrl = URL.createObjectURL(blob);
             setResultImage(imageUrl);
         } else {
-            console.error("Failed to get segmentation from SAM2.");
+            const errorText = await response.text();
+            console.error("Failed to get segmentation from SAM2:", errorText);
         }
-    };
+    } catch (error) {
+        console.error("Error occurred while uploading image:", error);
+    }
+};
+
 
     return (
         <div>

@@ -18,12 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 
 from recog import views
-from recog.views import TaggedImageUploadView, segment_image
+from recog.views import TaggedImageUploadView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/hello/', views.hello_world, name='hello_world'),
+    #path('api/hello/', views.hello_world, name='hello_world'),
     path('api/upload/', TaggedImageUploadView.as_view(), name='upload'),
-    path('api/segment/', views.segment_image, name='segment_image'),
+    #path('api/segment/', segment_image, name='segment_image'),
     path('upload_image/', TaggedImageUploadView.as_view(), name='upload_image'),
 ]

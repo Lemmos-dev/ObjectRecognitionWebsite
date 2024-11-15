@@ -4,4 +4,4 @@ from .models import TaggedImage
 class TaggedImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaggedImage
-        fields = ['id', 'image', 'tags']
+        fields = ['id','image', 'tags']
