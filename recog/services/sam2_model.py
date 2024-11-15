@@ -1,4 +1,4 @@
-# services/sam2_service.py
+# services/sam2_model.py
 import json
 import numpy as np
 import torch
@@ -8,6 +8,8 @@ from sam2.sam2_image_predictor import SAM2ImagePredictor
 from sam2.build_sam import build_sam2
 from rest_framework.decorators import api_view
 import io
+
+from recog.serializers import TaggedImageSerializer
 
 # Load SAM2 model outside the view to avoid reloading it on each request
 checkpoint = "C:/Users/Lemmea/Documents/GitHub/sam2/checkpoints/sam2.1_hiera_large.pt"  # Path to your model checkpoint
@@ -58,3 +60,12 @@ def process_image_with_sam2(image_file, tags):
 
     return masks, combined_image
 
+def process_and_save_image(image_file, tags):
+    # Save the image and tags first
+    serializer = TaggedImageSerializer(data={"image": image_file, "tags": tags})
+    if not serializer.is_valid():
+        raise ValueError("Invalid data: " + str(serializer.errors))
+    serializer.save()
+
+    # Process the image with SAM2
+    return process_image_with_sam2(image_file, tags)
