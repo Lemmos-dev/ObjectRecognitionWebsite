@@ -58,6 +58,18 @@ export default function UploadPage() {
         }));
         formData.append('tags', JSON.stringify(tagsData));
 
+        fetch("http://localhost:8000/upload_image/", {
+            method: "POST",
+            body: formData,
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Image and tags saved:", data);
+            })
+            .catch(error => {
+                console.error("Error uploading image and tags:", error);
+            });
+
         const response = await fetch('http://localhost:8000/api/segment/', {
             method: 'POST',
             body: formData,

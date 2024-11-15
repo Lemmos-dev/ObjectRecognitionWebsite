@@ -22,15 +22,19 @@ def hello_world(request):
 
 
 class TaggedImageUploadView(APIView):
-    #parser_classes = [MultiPartParser, JSONParser]
+    parser_classes = [MultiPartParser, JSONParser]
 
     def post(self, request, *args, **kwargs):
+        print("Request Data:", request.data)
         # First, save the data in the local database
         serializer = TaggedImageSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            print("Data saved successfully")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            print("Errors in serializer:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
