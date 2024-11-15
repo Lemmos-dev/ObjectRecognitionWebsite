@@ -1,13 +1,9 @@
 # services/sam2_model.py
-import json
 import numpy as np
 import torch
-from django.http import JsonResponse, HttpResponse
 from PIL import Image, ImageDraw
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 from sam2.build_sam import build_sam2
-from rest_framework.decorators import api_view
-import io
 
 from recog.serializers import TaggedImageSerializer
 
