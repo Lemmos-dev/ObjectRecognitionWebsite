@@ -5,9 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from django.http import JsonResponse, HttpResponse
-from rest_framework.decorators import api_view
 from PIL import Image, ImageDraw
-import torch
 import numpy as np
 from rest_framework.views import APIView
 from sam2.build_sam import build_sam2
@@ -24,7 +22,7 @@ def hello_world(request):
 
 
 class TaggedImageUploadView(APIView):
-    parser_classes = [MultiPartParser, JSONParser]
+    #parser_classes = [MultiPartParser, JSONParser]
 
     def post(self, request, *args, **kwargs):
         # First, save the data in the local database
@@ -38,8 +36,8 @@ class TaggedImageUploadView(APIView):
 
 
 # Load SAM2 model outside the view to avoid reloading it on each request
-checkpoint = "F:/GitHub/sam2/checkpoints/sam2.1_hiera_small.pt"  # Path to your model checkpoint
-model_cfg = "F:/GitHub/sam2/configs/sam2.1/sam2.1_hiera_s.yaml"  # Path to your model configuration file
+checkpoint = "C:/Users/Lemmea/Documents/GitHub/sam2/checkpoints/sam2.1_hiera_large.pt"  # Path to your model checkpoint
+model_cfg = "C:/Users/Lemmea/Documents/GitHub/sam2/configs/sam2.1/sam2.1_hiera_l.yaml"  # Path to your model configuration file
 predictor = SAM2ImagePredictor(build_sam2(model_cfg, checkpoint))
 
 
