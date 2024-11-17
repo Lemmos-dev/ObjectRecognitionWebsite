@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 
 const ImagePage = () => {
     const { query } = useRouter();
+    const router = useRouter();
     const { id } = query; // `id` will be dynamically retrieved from the URL
     const [image, setImage] = useState(null);
     const [tags, setTags] = useState([]);
@@ -20,9 +21,9 @@ const ImagePage = () => {
                 headers: { 'Content-Type': 'application/json' },
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch image: ${response.statusText}`);
-            }
+            // if (!response.ok) {
+            //     throw new Error(`Failed to fetch image: ${response.statusText}`);
+            // }
 
             const data = await response.json();
             setImage(data.image);  // This should now contain the relative path, e.g., '/media/tagged_images/image1.png'
@@ -34,47 +35,42 @@ const ImagePage = () => {
         }
     };
 
-    const updateTags = async (updatedTags) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await fetch(baseUrl, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tags: updatedTags }),
-            });
+    const updateTags = async (id, updatedTags) => {
+        const response = await fetch(`http://127.0.0.1:8000/api/image/${id}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ tags: updatedTags }),
+        });
 
-            if (!response.ok) {
-                throw new Error(`Failed to update tags: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            setTags(data.tags);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
+        const data = await response.json();
+        if (response.ok) {
+            console.log('Tags updated successfully:', data);
+        } else {
+            console.error('Error updating tags:', data);
         }
     };
 
-    const deleteImage = async () => {
-        setLoading(true);
-        setError(null);
+    const deleteImage = async (id) => {
+
         try {
-            const response = await fetch(baseUrl, {
+            const response = await fetch(`http://127.0.0.1:8000/api/image/${id}/`, {
                 method: 'DELETE',
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to delete image: ${response.statusText}`);
+            if (response.ok) {
+                console.log('Image deleted successfully');
+                // Redirect to the upload page
+                router.push('/upload'); // Assuming `/upload` is the route for the upload page
+            } else {
+                const errorData = await response.json();
+                console.error('Error deleting image:', errorData);
+                alert('Failed to delete image');
             }
-
-            setImage(null);
-            setTags([]);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
+        } catch (error) {
+            console.error('Error during delete request:', error);
+            alert('An unexpected error occurred');
         }
     };
 
@@ -105,10 +101,8 @@ const ImagePage = () => {
                             </li>
                         ))}
                     </ul>
-                    <button onClick={() => updateTags([{ x: 100, y: 200, label: 1 }])}>
-                        Update Tags
-                    </button>
-                    <button onClick={deleteImage}>Delete Image</button>
+                    <button onClick={() => updateTags(id, tags)}>Update Tags</button>
+                    <button onClick={() => deleteImage(id)}>Delete Image</button>
                 </div>
             ) : (
                 <p>No image available.</p>

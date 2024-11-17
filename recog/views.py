@@ -1,5 +1,6 @@
 # views.py
 from django.core.files.storage import default_storage
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, JSONParser
@@ -30,37 +31,47 @@ class TaggedImageUploadView(APIView):
             return JsonResponse({'error': str(e)}, status=500)
 
     def get(self, request, *args, **kwargs):
+        # Handle the GET request to fetch the image data
+        image_id = kwargs.get('id')
         try:
-            # Access the id parameter from kwargs
-            image_id = kwargs.get('id')  # This will get the id from the URL
-
-            # Fetch the TaggedImage object by id
             image_instance = TaggedImage.objects.get(id=image_id)
-
-            # Return the image URL and tags as JSON response
-            image_url = image_instance.image.url  # Using image field's URL property
-            return JsonResponse({
+            image_url = image_instance.image.url  # Serve the image URL
+            return Response({
                 'image': image_url,
                 'tags': image_instance.tags
             })
         except TaggedImage.DoesNotExist:
-            return JsonResponse({'error': 'Image not found'}, status=404)
+            return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def put(self, request, image_id):
-        try:
-            image = TaggedImage.objects.get(id=image_id)
-            serializer = TaggedImageSerializer(image, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=200)
-            return Response(serializer.errors, status=400)
-        except TaggedImage.DoesNotExist:
-            return Response({"error": "Image not found"}, status=404)
+    def put(self, request, *args, **kwargs):
+        # Handle the PUT request to update the tags of an image
+        image_id = kwargs.get('id')  # Access the 'id' from the URL parameters
 
-    def delete(self, request, image_id):
         try:
-            image = TaggedImage.objects.get(id=image_id)
-            image.delete()
-            return Response({"message": "Image deleted"}, status=204)
+            image_instance = TaggedImage.objects.get(id=image_id)
         except TaggedImage.DoesNotExist:
-            return Response({"error": "Image not found"}, status=404)
+            return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Assuming you're sending tags in the request data
+        serializer = TaggedImageSerializer(image_instance, data=request.data,
+                                           partial=True)  # partial=True allows updating only part of the model (tags)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'Image tags updated successfully',
+                'tags': serializer.data['tags']
+            })
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        # Handle the DELETE request to remove an image from the database
+        image_id = kwargs.get('id')  # Access the 'id' from the URL parameters
+
+        try:
+            image_instance = TaggedImage.objects.get(id=image_id)
+            image_instance.delete()  # Delete the image instance from the database
+            return Response({'message': 'Image deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except TaggedImage.DoesNotExist:
+            return Response({'error': 'Image not found'}, status=status.HTTP_404_NOT_FOUND)
