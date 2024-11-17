@@ -9,6 +9,7 @@ const ImagePage = () => {
     const [tags, setTags] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [tagMode, setTagMode] = useState("include");
 
     const baseUrl = `http://127.0.0.1:8000/api/image/${id}/`; // Dynamic URL based on `id`
 
@@ -32,23 +33,6 @@ const ImagePage = () => {
             setError(err.message);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const updateTags = async (id, updatedTags) => {
-        const response = await fetch(`http://127.0.0.1:8000/api/image/${id}/`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ tags: updatedTags }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            console.log('Tags updated successfully:', data);
-        } else {
-            console.error('Error updating tags:', data);
         }
     };
 
@@ -76,9 +60,37 @@ const ImagePage = () => {
 
     useEffect(() => {
         if (id) {
-            fetchImage();
+            fetch(`http://127.0.0.1:8000/api/image/${id}/`)
+                .then((res) => res.json())
+                .then((data) => {
+                    setImage(`http://127.0.0.1:8000${data.image}`);
+                    setTags(data.tags || []);
+                })
+                .catch((err) => console.error("Failed to fetch image:", err));
         }
-    }, [id]); // Re-fetch image when the `id` changes
+    }, [id]);
+
+    const toggleTagMode = () => {
+        setTagMode((prevMode) => (prevMode === "include" ? "exclude" : "include"));
+    };
+
+    const handleImageClick = (e) => {
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const newTag = { x, y, label: tagMode === "include" ? 1 : 0 };
+        const updatedTags = [...tags, newTag];
+
+        setTags(updatedTags);
+
+        // Update tags in the database via PUT
+        fetch(`http://127.0.0.1:8000/api/image/${id}/`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tags: updatedTags }),
+        }).catch((err) => console.error("Failed to update tags:", err));
+    };
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
@@ -87,26 +99,44 @@ const ImagePage = () => {
         <div>
             <h1>Image Details</h1>
             {image ? (
-                <div>
+                <div style={{position: "relative", display: "inline-block"}}>
                     <img
-                        src={`http://127.0.0.1:8000${image}`}  // Full image URL (prepend base URL)
+                        src={image}
                         alt="Tagged"
-                        width="400"
+                        onClick={handleImageClick}
+                        style={{maxWidth: "100%", cursor: "crosshair"}}
                     />
-                    <h2>Tags</h2>
-                    <ul>
-                        {tags.map((tag, index) => (
-                            <li key={index}>
-                                {`x: ${tag.x}, y: ${tag.y}, label: ${tag.label}`}
-                            </li>
-                        ))}
-                    </ul>
-                    <button onClick={() => updateTags(id, tags)}>Update Tags</button>
-                    <button onClick={() => deleteImage(id)}>Delete Image</button>
+                    {tags.map((tag, index) => (
+                        <div
+                            key={index}
+                            style={{
+                                position: "absolute",
+                                top: `${tag.y}px`,
+                                left: `${tag.x}px`,
+                                width: "10px",
+                                height: "10px",
+                                borderRadius: "50%",
+                                backgroundColor: tag.label === 1 ? "green" : "red",
+                                transform: "translate(-50%, -50%)",
+                            }}
+                        ></div>
+                    ))}
                 </div>
             ) : (
-                <p>No image available.</p>
+                <p>Loading image...</p>
             )}
+            <button onClick={toggleTagMode}>
+                Toggle Tag Mode: {tagMode === "include" ? "Include (Green)" : "Exclude (Red)"}
+            </button>
+            <button onClick={deleteImage}>Delete Image</button>
+            <h2>Tags (Plaintext)</h2>
+            <ul>
+                {tags.map((tag, index) => (
+                    <li key={index}>
+                        ({tag.x}, {tag.y}) - {tag.label === 1 ? "Include" : "Exclude"}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };
